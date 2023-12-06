@@ -126,7 +126,7 @@ void stringHash(const char *str, uint32_t *hash)
  * @param ok *ok == 0 -> error; *ok == 1 -> ok
  * @return Returns a unique number associated with each filename
  */
-uint32_t getFileSerialNumber(const char *file, int *ok)
+DLT_EXPORT uint32_t getFileSerialNumber(const char *file, int *ok)
 {
     struct stat st;
     uint32_t ret;

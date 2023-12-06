@@ -39,6 +39,7 @@
 #include <sys/stat.h> /* for mkdir() */
 #include <sys/wait.h>
 
+#include "dlt_export.h"
 #include "dlt_user_shared.h"
 #include "dlt_common.h"
 #include "dlt_common_cfg.h"
@@ -114,12 +115,12 @@ static char *return_type[] =
 { "ok", "not_supported", "error", "perm_denied", "warning", "", "", "", "no_matching_context_id" };
 
 /* internal function definitions */
-int dlt_buffer_get(DltBuffer *buf, unsigned char *data, int max_size, int delete);
-int dlt_buffer_reset(DltBuffer *buf);
-int dlt_buffer_increase_size(DltBuffer *buf);
-int dlt_buffer_minimize_size(DltBuffer *buf);
-void dlt_buffer_write_block(DltBuffer *buf, int *write, const unsigned char *data, unsigned int size);
-void dlt_buffer_read_block(DltBuffer *buf, int *read, unsigned char *data, unsigned int size);
+DLT_EXPORT int dlt_buffer_get(DltBuffer *buf, unsigned char *data, int max_size, int delete);
+DLT_EXPORT int dlt_buffer_reset(DltBuffer *buf);
+DLT_EXPORT int dlt_buffer_increase_size(DltBuffer *buf);
+DLT_EXPORT int dlt_buffer_minimize_size(DltBuffer *buf);
+DLT_EXPORT void dlt_buffer_write_block(DltBuffer *buf, int *write, const unsigned char *data, unsigned int size);
+DLT_EXPORT void dlt_buffer_read_block(DltBuffer *buf, int *read, unsigned char *data, unsigned int size);
 
 void dlt_print_hex(uint8_t *ptr, int size)
 {

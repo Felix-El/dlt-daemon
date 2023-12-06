@@ -33,7 +33,7 @@
 #include "dlt.h"
 
 template<typename T>
-int32_t logToDlt(DltContextData &log, T const &value) = delete;
+static int32_t logToDlt(DltContextData &log, T const &value) = delete;
 
 template<>
 inline int32_t logToDlt(DltContextData &log, int8_t const &value)
@@ -65,38 +65,32 @@ inline int32_t logToDlt(DltContextData &log, uint8_t const &value)
     return dlt_user_log_write_uint8(&log, value);
 }
 
-template<>
-inline int32_t logToDlt(DltContextData &log, uint16_t const &value)
+template <> inline int32_t logToDlt(DltContextData &log, uint16_t const &value)
 {
     return dlt_user_log_write_uint16(&log, value);
 }
 
-template<>
-inline int32_t logToDlt(DltContextData &log, uint32_t const &value)
+template <> inline int32_t logToDlt(DltContextData &log, uint32_t const &value)
 {
     return dlt_user_log_write_uint32(&log, value);
 }
 
-template<>
-inline int32_t logToDlt(DltContextData &log, uint64_t const &value)
+template <> inline int32_t logToDlt(DltContextData &log, uint64_t const &value)
 {
     return dlt_user_log_write_uint64(&log, value);
 }
 
-template<>
-inline int32_t logToDlt(DltContextData &log, float32_t const &value)
+template <> inline int32_t logToDlt(DltContextData &log, float32_t const &value)
 {
     return dlt_user_log_write_float32(&log, value);
 }
 
-template<>
-inline int32_t logToDlt(DltContextData &log, double const &value)
+template <> inline int32_t logToDlt(DltContextData &log, double const &value)
 {
     return dlt_user_log_write_float64(&log, value);
 }
 
-template<>
-inline int32_t logToDlt(DltContextData &log, bool const &value)
+template <> inline int32_t logToDlt(DltContextData &log, bool const &value)
 {
     return dlt_user_log_write_bool(&log, value);
 }
@@ -111,15 +105,12 @@ static inline int32_t logToDlt(DltContextData &log, char * const value)
     return dlt_user_log_write_utf8_string(&log, value);
 }
 
+/* stl types */
 template<>
 inline int32_t logToDlt(DltContextData &log, std::string const &value)
 {
     return dlt_user_log_write_utf8_string(&log, value.c_str());
 }
-
-/* stl types */
-template<>
-int32_t logToDlt(DltContextData &log, std::string const &value);
 
 template<typename _Tp, typename _Alloc = std::allocator<_Tp>>
 static inline int32_t logToDlt(DltContextData &log, std::vector<_Tp, _Alloc> const & value)
