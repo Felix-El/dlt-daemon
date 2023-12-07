@@ -44,12 +44,12 @@ extern "C" {
 }
 
 #ifndef DLT_USER_DIR
-#   define DLT_USER_DIR  "/tmp/dltpipes"
+#define DLT_USER_DIR DLT_USER_IPC_PATH "/" DLT_USER_PIPE_SUBDIR
 #endif
 
 /* Name of named pipe to DLT daemon */
 #ifndef DLT_USER_FIFO
-#   define DLT_USER_FIFO "/tmp/dlt"
+#define DLT_USER_FIFO DLT_USER_IPC_PATH "/" DLT_DAEMON_FIFO_NAME
 #endif
 
 /* Begin Method:dlt_daemon_common::dlt_daemon_init_user_information */

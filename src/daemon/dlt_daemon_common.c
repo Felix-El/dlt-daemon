@@ -631,11 +631,9 @@ DltDaemonApplication *dlt_daemon_application_add(DltDaemon *daemon,
 #endif
 #ifdef DLT_DAEMON_USE_FIFO_IPC
         if (dlt_user_handle < DLT_FD_MINIMUM) {
-            snprintf(filename,
-                     DLT_DAEMON_COMMON_TEXTBUFSIZE,
-                     "%s/dltpipes/dlt%d",
-                     dltFifoBaseDir,
-                     pid);
+            snprintf(filename, DLT_DAEMON_COMMON_TEXTBUFSIZE, "%s/%s/%s%d",
+                     dltFifoBaseDir, DLT_USER_PIPE_SUBDIR,
+                     DLT_USER_PIPE_NAME_PREFIX, pid);
 
             dlt_user_handle = open(filename, O_WRONLY | O_NONBLOCK);
 

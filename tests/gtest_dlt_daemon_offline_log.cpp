@@ -2289,7 +2289,8 @@ int connectServer(void)
 #else /* DLT_DAEMON_USE_FIFO_IPC */
     char filename[1024];
     int sockfd;
-    snprintf(filename, 1024, "/tmp/dltpipes/dlt%d", getpid());
+    snprintf(filename, 1024, "/tmp/%s/%s%d", DLT_USER_PIPE_SUBDIR,
+             DLT_USER_PIPE_NAME_PREFIX, getpid());
     /* Try to delete existing pipe, ignore result of unlink */
     unlink(filename);
 

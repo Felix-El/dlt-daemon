@@ -327,10 +327,10 @@ int option_handling(DltDaemonLocal *daemon_local, int argc, char *argv[])
     /* switch() */
 
 #ifdef DLT_DAEMON_USE_FIFO_IPC
-    snprintf(daemon_local->flags.userPipesDir, DLT_PATH_MAX,
-             "%s/dltpipes", dltFifoBaseDir);
-    snprintf(daemon_local->flags.daemonFifoName, DLT_PATH_MAX,
-             "%s/dlt", dltFifoBaseDir);
+    snprintf(daemon_local->flags.userPipesDir, DLT_PATH_MAX, "%s/%s",
+             dltFifoBaseDir, DLT_USER_PIPE_SUBDIR);
+    snprintf(daemon_local->flags.daemonFifoName, DLT_PATH_MAX, "%s/%s",
+             dltFifoBaseDir, DLT_DAEMON_FIFO_NAME);
 #endif
 
 #ifdef DLT_SHM_ENABLE
@@ -405,7 +405,8 @@ int option_file_parser(DltDaemonLocal *daemon_local)
             DLT_DAEMON_DEFAULT_CTRL_SOCK_PATH,
             sizeof(daemon_local->flags.ctrlSockPath));
 #ifdef DLT_DAEMON_USE_UNIX_SOCKET_IPC
-    snprintf(daemon_local->flags.appSockPath, DLT_IPC_PATH_MAX, "%s/dlt", DLT_USER_IPC_PATH);
+    snprintf(daemon_local->flags.appSockPath, DLT_IPC_PATH_MAX, "%s/%s",
+             DLT_USER_IPC_PATH, DLT_APP_SOCK_NAME);
 
     if (strlen(DLT_USER_IPC_PATH) > DLT_IPC_PATH_MAX)
         fprintf(stderr, "Provided path too long...trimming it to path[%s]\n",
@@ -2127,7 +2128,8 @@ void dlt_daemon_exit_trigger()
     char tmp[DLT_PATH_MAX] = { 0 };
 
     ssize_t n;
-    n = snprintf(tmp, DLT_PATH_MAX, "%s/dlt", dltFifoBaseDir);
+    n = snprintf(tmp, DLT_PATH_MAX, "%s/%s", dltFifoBaseDir,
+                 DLT_DAEMON_FIFO_NAME);
     if (n < 0 || (size_t)n > DLT_PATH_MAX) {
         dlt_vlog(LOG_WARNING, "%s: snprintf truncation/error(%ld) %s\n",
                 __func__, n, tmp);

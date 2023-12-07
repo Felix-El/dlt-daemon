@@ -187,8 +187,32 @@ endif()
 if(NOT DLT_USER_IPC_PATH)
     set(DLT_USER_IPC_PATH "/tmp")
 endif()
+if(NOT DLT_APP_SOCK_NAME)
+    # Name of the socket when DLT_IPC=UNIX_SOCKET
+    set(DLT_APP_SOCK_NAME "dlt")
+endif()
+if(NOT DLT_DAEMON_FIFO_NAME)
+    # Name of the app-to-daemon FIFO when DLT_IPC=FIFO
+    set(DLT_DAEMON_FIFO_NAME "dlt")
+endif()
+if(NOT DLT_USER_PIPE_SUBDIR)
+    # Subdirectory under DLT_USER_IPC_PATH where to collect daemon-to-app FIFOs
+    # when DLT_IPC=FIFO.
+    set(DLT_USER_PIPE_SUBDIR "dltpipes")
+endif()
+if(NOT DLT_USER_PIPE_NAME_PREFIX)
+    # Filename prefix for daemon-to-app FIFOs placed within
+    # <DLT_USER_IPC_PATH>/<DLT_USER_PIPE_SUBDIR> when DLT_IPC=FIFO.
+    set(DLT_USER_PIPE_NAME_PREFIX "dlt")
+endif()
 
-add_definitions(-DDLT_USER_IPC_PATH="${DLT_USER_IPC_PATH}")
+add_definitions(
+    -DDLT_USER_IPC_PATH="${DLT_USER_IPC_PATH}"
+    -DDLT_APP_SOCK_NAME="${DLT_APP_SOCK_NAME}"
+    -DDLT_DAEMON_FIFO_NAME="${DLT_DAEMON_FIFO_NAME}"
+    -DDLT_USER_PIPE_SUBDIR="${DLT_USER_PIPE_SUBDIR}"
+    -DDLT_USER_PIPE_NAME_PREFIX="${DLT_USER_PIPE_NAME_PREFIX}"
+)
 
 if(WITH_DLTTEST)
     add_definitions(-DDLT_TEST_ENABLE)

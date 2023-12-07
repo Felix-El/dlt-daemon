@@ -293,7 +293,8 @@ static DltReturnValue dlt_initialize_socket_connection(void)
     }
 
     remote.sun_family = AF_UNIX;
-    snprintf(dltSockBaseDir, DLT_IPC_PATH_MAX, "%s/dlt", DLT_USER_IPC_PATH);
+    snprintf(dltSockBaseDir, DLT_IPC_PATH_MAX, "%s/%s", DLT_USER_IPC_PATH,
+             DLT_APP_SOCK_NAME);
     strncpy(remote.sun_path, dltSockBaseDir, sizeof(remote.sun_path));
 
     if (strlen(DLT_USER_IPC_PATH) > DLT_IPC_PATH_MAX)
@@ -392,8 +393,10 @@ static DltReturnValue dlt_initialize_fifo_connection(void)
     char filename[DLT_PATH_MAX];
     int ret;
 
-    snprintf(dlt_user_dir, DLT_PATH_MAX, "%s/dltpipes", dltFifoBaseDir);
-    snprintf(dlt_daemon_fifo, DLT_PATH_MAX, "%s/dlt", dltFifoBaseDir);
+    snprintf(dlt_user_dir, DLT_PATH_MAX, "%s/%s", dltFifoBaseDir,
+             DLT_USER_PIPE_SUBDIR);
+    snprintf(dlt_daemon_fifo, DLT_PATH_MAX, "%s/%s", dltFifoBaseDir,
+             DLT_DAEMON_FIFO_NAME);
     ret = mkdir(dlt_user_dir, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH | S_ISVTX);
 
     if ((ret == -1) && (errno != EEXIST)) {
@@ -415,7 +418,8 @@ static DltReturnValue dlt_initialize_fifo_connection(void)
     }
 
     /* create and open DLT user FIFO */
-    snprintf(filename, DLT_PATH_MAX, "%s/dlt%d", dlt_user_dir, getpid());
+    snprintf(filename, DLT_PATH_MAX, "%s/%s%d", dlt_user_dir,
+             DLT_USER_PIPE_NAME_PREFIX, getpid());
 
     /* Try to delete existing pipe, ignore result of unlink */
     unlink(filename);
@@ -1027,7 +1031,8 @@ DltReturnValue dlt_free(void)
     if (dlt_user.dlt_user_handle != DLT_FD_INIT) {
         close(dlt_user.dlt_user_handle);
         dlt_user.dlt_user_handle = DLT_FD_INIT;
-        snprintf(filename, DLT_PATH_MAX, "%s/dlt%d", dlt_user_dir, getpid());
+        snprintf(filename, DLT_PATH_MAX, "%s/%s%d", dlt_user_dir,
+                 DLT_USER_PIPE_NAME_PREFIX, getpid());
         unlink(filename);
     }
 
