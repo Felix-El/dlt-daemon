@@ -137,7 +137,8 @@ int dlt_daemon_unix_socket_open(int *sock, char *sock_path, int type, int mask)
 #endif
 
     if ((*sock = socket(AF_UNIX, type, 0)) == -1) {
-        dlt_log(LOG_WARNING, "unix socket: socket() error");
+        dlt_vlog(LOG_WARNING, "unix socket: socket() error: %s",
+                 strerror(errno));
         return -1;
     }
 

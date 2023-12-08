@@ -30,6 +30,7 @@
 #include <libgen.h>
 
 #include "dlt_common.h"
+#include "dlt_compat.h"
 #include "dlt_offline_logstorage.h"
 #include "dlt_offline_logstorage_behavior.h"
 #include "dlt_offline_logstorage_behavior_internal.h"

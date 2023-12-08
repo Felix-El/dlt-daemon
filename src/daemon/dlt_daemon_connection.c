@@ -36,16 +36,17 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "dlt_daemon_connection_types.h"
-#include "dlt_daemon_connection.h"
-#include "dlt_daemon_event_handler_types.h"
-#include "dlt_daemon_event_handler.h"
 #include "dlt-daemon.h"
 #include "dlt-daemon_cfg.h"
-#include "dlt_daemon_common.h"
 #include "dlt_common.h"
-#include "dlt_gateway.h"
+#include "dlt_compat.h"
+#include "dlt_daemon_common.h"
+#include "dlt_daemon_connection.h"
+#include "dlt_daemon_connection_types.h"
+#include "dlt_daemon_event_handler.h"
+#include "dlt_daemon_event_handler_types.h"
 #include "dlt_daemon_socket.h"
+#include "dlt_gateway.h"
 
 static DltConnectionId connectionId;
 extern char *app_recv_buffer;
@@ -196,6 +197,7 @@ DLT_STATIC DltReceiver *dlt_connection_get_receiver(DltDaemonLocal *daemon_local
     DltReceiver *ret = NULL;
     DltReceiverType receiver_type = DLT_RECEIVE_FD;
     struct stat statbuf;
+    socklen_t dummy = 0;
 
     switch (type) {
     case DLT_CONNECTION_CONTROL_CONNECT:
@@ -223,6 +225,11 @@ DLT_STATIC DltReceiver *dlt_connection_get_receiver(DltDaemonLocal *daemon_local
 
         receiver_type = DLT_RECEIVE_FD;
 
+#if defined(__VXWORKS__)
+        if (getsockname(fd, NULL, &dummy) == 0) {
+            receiver_type = DLT_RECEIVE_SOCKET;
+        }
+#else
         if (fstat(fd, &statbuf) == 0) {
             if (S_ISSOCK(statbuf.st_mode))
                 receiver_type = DLT_RECEIVE_SOCKET;
@@ -230,6 +237,7 @@ DLT_STATIC DltReceiver *dlt_connection_get_receiver(DltDaemonLocal *daemon_local
             dlt_vlog(LOG_WARNING,
                      "Failed to determine receive type for DLT_CONNECTION_APP_MSG, using \"FD\"\n");
         }
+#endif
 
         if (ret)
             dlt_receiver_init_global_buffer(ret, fd, receiver_type, &app_recv_buffer);
@@ -417,7 +425,7 @@ int dlt_connection_create(DltDaemonLocal *daemon_local,
         dlt_vlog(LOG_WARNING, "Unable to set send timeout %s.\n", strerror(errno));
         // as this function is used for non socket connection as well
         // we only can return an error here if it is a socket
-        if (errno != ENOTSOCK) {
+        if (errno != ENOTSOCK && errno != ENOPROTOOPT) {
             free(temp);
             return -1;
         }

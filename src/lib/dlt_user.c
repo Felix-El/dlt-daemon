@@ -72,11 +72,12 @@
 #   endif
 #endif
 
-#include "dlt_user.h"
 #include "dlt_common.h"
+#include "dlt_compat.h"
+#include "dlt_user.h"
+#include "dlt_user_cfg.h"
 #include "dlt_user_shared.h"
 #include "dlt_user_shared_cfg.h"
-#include "dlt_user_cfg.h"
 
 #ifdef DLT_FATAL_LOG_RESET_ENABLE
 #   define DLT_LOG_FATAL_RESET_TRAP(LOGLEVEL) \
@@ -278,7 +279,12 @@ static DltReturnValue dlt_initialize_socket_connection(void)
     char dltSockBaseDir[DLT_IPC_PATH_MAX];
 
     DLT_SEM_LOCK();
+
+#if defined(__VXWORKS__)
+    int sockfd = socket(AF_UNIX, SOCK_SEQPACKET, 0);
+#else
     int sockfd = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+#endif
 
     if (sockfd == DLT_FD_INIT) {
         dlt_log(LOG_CRIT, "Failed to create socket\n");
@@ -393,28 +399,41 @@ static DltReturnValue dlt_initialize_fifo_connection(void)
     char filename[DLT_PATH_MAX];
     int ret;
 
-    snprintf(dlt_user_dir, DLT_PATH_MAX, "%s/%s", dltFifoBaseDir,
-             DLT_USER_PIPE_SUBDIR);
     snprintf(dlt_daemon_fifo, DLT_PATH_MAX, "%s/%s", dltFifoBaseDir,
              DLT_DAEMON_FIFO_NAME);
-    ret = mkdir(dlt_user_dir, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH | S_ISVTX);
 
-    if ((ret == -1) && (errno != EEXIST)) {
-        dlt_vnlog(LOG_ERR, DLT_USER_BUFFER_LENGTH, "FIFO user dir %s cannot be created!\n", dlt_user_dir);
-        return DLT_RETURN_ERROR;
-    }
+    if (0 != strcmp(DLT_USER_PIPE_SUBDIR, "/")) {
+        snprintf(dlt_user_dir, DLT_PATH_MAX, "%s/%s", dltFifoBaseDir,
+                 DLT_USER_PIPE_SUBDIR);
 
-    /* if dlt pipes directory is created by the application also chmod the directory */
-    if (ret == 0) {
-        /* S_ISGID cannot be set by mkdir, let's reassign right bits */
-        ret = chmod(dlt_user_dir,
-                    S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH | S_ISGID |
-                    S_ISVTX);
+        ret = mkdir(dlt_user_dir, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP |
+                                      S_IWGRP | S_IROTH | S_IWOTH | S_ISVTX);
 
-        if (ret == -1) {
-            dlt_vnlog(LOG_ERR, DLT_USER_BUFFER_LENGTH, "FIFO user dir %s cannot be chmoded!\n", dlt_user_dir);
+        if ((ret == -1) && (errno != EEXIST)) {
+            dlt_vnlog(LOG_ERR, DLT_USER_BUFFER_LENGTH,
+                      "FIFO user dir %s cannot be created!\n", dlt_user_dir);
             return DLT_RETURN_ERROR;
         }
+
+        /* if dlt pipes directory is created by the application also chmod the
+         * directory */
+        if (ret == 0) {
+            /* S_ISGID cannot be set by mkdir, let's reassign right bits */
+            ret =
+                chmod(dlt_user_dir, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP |
+                                        S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH |
+                                        S_IXOTH | S_ISGID | S_ISVTX);
+
+            if (ret == -1) {
+                dlt_vnlog(LOG_ERR, DLT_USER_BUFFER_LENGTH,
+                          "FIFO user dir %s cannot be chmoded!\n",
+                          dlt_user_dir);
+                return DLT_RETURN_ERROR;
+            }
+        }
+    }
+    else {
+        strncpy(dlt_user_dir, dltFifoBaseDir, DLT_PATH_MAX);
     }
 
     /* create and open DLT user FIFO */
@@ -4051,8 +4070,9 @@ DltReturnValue dlt_user_log_send_log(DltContextData *log, int mtype)
                 return DLT_RETURN_ERROR;
             }
 
-            dlt_vlog(LOG_DEBUG, "%s: Current file size=[%ld]\n", __func__,
-                     st.st_size);
+            dlt_vlog(LOG_DEBUG, "%s: Current file size=[%jd]\n", __func__,
+                     (uintmax_t)st.st_size);
+
             /* Check filesize */
             /* Return error if the file size has reached to maximum */
             unsigned int msg_size = st.st_size + (unsigned int) msg.headersize +
@@ -4060,8 +4080,10 @@ DltReturnValue dlt_user_log_send_log(DltContextData *log, int mtype)
             if (msg_size > dlt_user.filesize_max) {
                 dlt_user_file_reach_max = true;
                 dlt_vlog(LOG_ERR,
-                         "%s: File size (%ld bytes) reached to defined maximum size (%d bytes)\n",
-                         __func__, st.st_size, dlt_user.filesize_max);
+                         "%s: File size (%jd bytes) reached to defined maximum "
+                         "size (%d bytes)\n",
+                         __func__, (uintmax_t)st.st_size,
+                         dlt_user.filesize_max);
                 return DLT_RETURN_FILESZERR;
             }
             else {

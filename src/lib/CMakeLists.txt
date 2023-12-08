@@ -18,6 +18,7 @@ set(dlt_LIB_SRCS
     dlt_client.c
     dlt_filetransfer.c
     dlt_env_ll.c
+    ${PROJECT_SOURCE_DIR}/src/shared/dlt_compat.c
     ${PROJECT_SOURCE_DIR}/src/shared/dlt_common.c
     ${PROJECT_SOURCE_DIR}/src/shared/dlt_multiple_files.c
     ${PROJECT_SOURCE_DIR}/src/shared/dlt_protocol.c
@@ -30,11 +31,11 @@ endif()
 
 add_library(dlt ${dlt_LIB_SRCS})
 
+set(RT_LIBRARY "")
+set(SOCKET_LIBRARY "")
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux|CYGWIN|MSYS")
     set(RT_LIBRARY rt)
-    set(SOCKET_LIBRARY "")
-else()
-    set(RT_LIBRARY "")
+elseif("${CMAKE_SYSTEM_NAME}" MATCHES "QNX")
     set(SOCKET_LIBRARY socket)
 endif()
 

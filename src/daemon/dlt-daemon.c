@@ -61,10 +61,11 @@
 #   endif
 #endif
 
-#include "dlt_types.h"
 #include "dlt-daemon.h"
 #include "dlt-daemon_cfg.h"
+#include "dlt_compat.h"
 #include "dlt_daemon_common_cfg.h"
+#include "dlt_types.h"
 
 #include "dlt_daemon_socket.h"
 #include "dlt_daemon_unix_socket.h"
@@ -327,10 +328,14 @@ int option_handling(DltDaemonLocal *daemon_local, int argc, char *argv[])
     /* switch() */
 
 #ifdef DLT_DAEMON_USE_FIFO_IPC
-    snprintf(daemon_local->flags.userPipesDir, DLT_PATH_MAX, "%s/%s",
-             dltFifoBaseDir, DLT_USER_PIPE_SUBDIR);
     snprintf(daemon_local->flags.daemonFifoName, DLT_PATH_MAX, "%s/%s",
              dltFifoBaseDir, DLT_DAEMON_FIFO_NAME);
+
+    if (0 != strcmp(DLT_USER_PIPE_SUBDIR, "/")) {
+        snprintf(daemon_local->flags.userPipesDir, DLT_PATH_MAX, "%s/%s",
+                 dltFifoBaseDir, DLT_USER_PIPE_SUBDIR);
+    }
+
 #endif
 
 #ifdef DLT_SHM_ENABLE
@@ -1195,11 +1200,15 @@ int main(int argc, char *argv[])
   }
 
 #else
+// AF_LOCAL socket paths are not actual filesystem objects in VxWorks.
+#if !defined(__VXWORKS__)
+
     if (dlt_mkdir_recursive(DLT_USER_IPC_PATH) != 0) {
         dlt_vlog(LOG_ERR, "Base dir %s cannot be created!\n", daemon_local.flags.appSockPath);
         return -1;
     }
 
+#endif
 #endif
 
     /* --- Daemon init phase 1 begin --- */
@@ -1391,8 +1400,11 @@ int dlt_daemon_local_init_p1(DltDaemon *daemon, DltDaemonLocal *daemon_local, in
 
 #ifdef DLT_DAEMON_USE_FIFO_IPC
 
-    if (dlt_daemon_create_pipes_dir(daemon_local->flags.userPipesDir) == DLT_RETURN_ERROR)
-        return DLT_RETURN_ERROR;
+    if (strlen(daemon_local->flags.userPipesDir) > 0) {
+        if (dlt_daemon_create_pipes_dir(daemon_local->flags.userPipesDir) ==
+            DLT_RETURN_ERROR)
+            return DLT_RETURN_ERROR;
+    }
 
 #endif
 
@@ -1733,9 +1745,12 @@ static DltReturnValue dlt_daemon_init_app_socket(DltDaemonLocal *daemon_local)
                                           mask);
     }
 #else
-    ret = dlt_daemon_unix_socket_open(&fd,
-                                      daemon_local->flags.appSockPath,
+    ret = dlt_daemon_unix_socket_open(&fd, daemon_local->flags.appSockPath,
+#if defined(__VXWORKS__)
+                                      SOCK_SEQPACKET,
+#else
                                       SOCK_STREAM,
+#endif
                                       mask);
 #endif
     if (ret == DLT_RETURN_OK) {
@@ -1785,9 +1800,12 @@ static DltReturnValue dlt_daemon_initialize_control_socket(DltDaemonLocal *daemo
                                           mask);
     }
 #else
-    ret = dlt_daemon_unix_socket_open(&fd,
-                                      daemon_local->flags.ctrlSockPath,
+    ret = dlt_daemon_unix_socket_open(&fd, daemon_local->flags.ctrlSockPath,
+#if defined(__VXWORKS__)
+                                      SOCK_SEQPACKET,
+#else
                                       SOCK_STREAM,
+#endif
                                       mask);
 #endif
     if (ret == DLT_RETURN_OK) {
@@ -2155,8 +2173,13 @@ void dlt_daemon_signal_handler(int sig)
         case SIGQUIT:
         {
             /* finalize the server */
+#if defined(__VXWORKS__)
+            dlt_vlog(LOG_NOTICE,
+                     "Exiting DLT daemon due to signal number: %d\n", sig);
+#else
             dlt_vlog(LOG_NOTICE, "Exiting DLT daemon due to signal: %s\n",
                      strsignal(sig));
+#endif
             dlt_daemon_exit_trigger();
             break;
         }
@@ -2202,6 +2225,7 @@ void dlt_daemon_daemonize(int verbose)
 
     dlt_log(LOG_NOTICE, "Daemon mode\n");
 
+#if !defined(__VXWORKS__)
     /* Daemonize */
     i = fork();
 
@@ -2222,6 +2246,7 @@ void dlt_daemon_daemonize(int verbose)
         dlt_log(LOG_CRIT, "setsid() failed, exiting DLT daemon\n");
         exit(-1); /* fork error */
     }
+#endif
 
     /* Open standard descriptors stdin, stdout, stderr */
     fd = open("/dev/null", O_RDWR);

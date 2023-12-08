@@ -1469,7 +1469,7 @@ int dlt_daemon_control_message_timezone(int sock, DltDaemon *daemon, DltDaemonLo
     struct tm lt;
     tzset();
     localtime_r(&t, &lt);
-#if !defined(__CYGWIN__)
+#if !defined(__CYGWIN__) && !defined(__VXWORKS__)
     resp->timezone = (int32_t)lt.tm_gmtoff;
 #endif
     resp->isdst = (uint8_t)lt.tm_isdst;

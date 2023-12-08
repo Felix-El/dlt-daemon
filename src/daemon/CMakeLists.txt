@@ -30,6 +30,7 @@ set(dlt_daemon_SRCS
     dlt_daemon_unix_socket.c
     ${PROJECT_SOURCE_DIR}/src/gateway/dlt_gateway.c
     ${PROJECT_SOURCE_DIR}/src/lib/dlt_client.c
+    ${PROJECT_SOURCE_DIR}/src/shared/dlt_compat.c
     ${PROJECT_SOURCE_DIR}/src/shared/dlt_common.c
     ${PROJECT_SOURCE_DIR}/src/shared/dlt_config_file_parser.c
     ${PROJECT_SOURCE_DIR}/src/shared/dlt_multiple_files.c
@@ -46,11 +47,11 @@ if(WITH_DLT_SHM_ENABLE)
         ${PROJECT_SOURCE_DIR}/src/shared/dlt_shm.c)
 endif()
 
+set(RT_LIBRARY "")
+set(SOCKET_LIBRARY "")
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux|CYGWIN|MSYS")
     set(RT_LIBRARY rt)
-    set(SOCKET_LIBRARY "")
-else()
-    set(RT_LIBRARY "")
+elseif("${CMAKE_SYSTEM_NAME}" MATCHES "QNX")
     set(SOCKET_LIBRARY socket)
 endif()
 

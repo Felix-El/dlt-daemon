@@ -4346,7 +4346,7 @@ DltReturnValue dlt_file_quick_parsing(DltFile *file, const char *filename,
     return ret;
 }
 
-
+#if !defined(__VXWORKS__)
 int dlt_execute_command(char *filename, char *command, ...)
 {
     va_list val;
@@ -4412,6 +4412,7 @@ int dlt_execute_command(char *filename, char *command, ...)
     free(args);
     return ret;
 }
+#endif
 
 char *get_filename_ext(const char *filename)
 {

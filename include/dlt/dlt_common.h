@@ -1663,6 +1663,7 @@ DLT_EXPORT int dlt_getloginfo_conv_ascii_to_id(char *rp, int *rp_count, char *wp
  */
 DLT_EXPORT void dlt_hex_ascii_to_binary(const char *ptr, uint8_t *binary, int *size);
 
+#if !defined(__VXWORKS__)
 /**
  * Helper function to execute the execvp function in a new child process.
  * @param filename file path to store the stdout of command (NULL if not required)
@@ -1670,6 +1671,7 @@ DLT_EXPORT void dlt_hex_ascii_to_binary(const char *ptr, uint8_t *binary, int *s
  * @return negative value if there was an error
  */
 DLT_EXPORT int dlt_execute_command(char *filename, char *command, ...);
+#endif
 
 /**
  * Return the extension of given file name.

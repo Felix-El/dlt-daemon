@@ -17,14 +17,15 @@
  * \file: dlt_offline_logstorage.c
  * For further information see http://www.covesa.org/.
  */
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <limits.h>
 #include <ctype.h>
-#include <sys/syslog.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <syslog.h>
-#include <sys/stat.h>
+#if !defined(__VXWORKS__)
+#include <sys/syslog.h>
+#endif
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
